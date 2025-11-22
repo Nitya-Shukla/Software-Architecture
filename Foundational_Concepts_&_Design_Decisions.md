@@ -119,3 +119,43 @@ The core value of the ABC lies in its emphasis on feedback and context:
 * **Architecture is Not Static:** It shows that architecture is not a one-time event but a continuous process influenced by external and internal forces.
 * **Non-Technical Influences:** It explicitly highlights that business goals, market pressures, and organizational structure are just as important as technical requirements in shaping the final system design.
 * **Continuous Learning:** The feedback from System Delivery and Use is what makes it a cycle. The knowledge gained (what worked, what didn't) becomes the "wisdom" used by the architect in the next iteration, constantly refining both the architecture and the way the organization operates.
+
+---
+
+## 🧱 Layered Architectural Pattern: Detailed Explanation
+
+The structure of the layered pattern typically follows a sequence, such as Presentation, Business, Persistence, and Database/Data Source. Strictly layered patterns mean a layer can only call services in the layer directly below it.
+
+### 1. Abstract Common Services
+
+The concept of abstract common services means that the lower layers of the architecture provide fundamental, generalized functionality that is independent of the specific application or business context. These services hide complex, low-level details.
+
+**Abstraction:** Lower layers create a simpler, cleaner interface for the layers above. For example, a Persistence Layer might offer simple functions like `saveObject(object)` or `findById(id)`. This hides the complexity of translating this request into an SQL query (e.g., `SELECT * FROM users WHERE user_id = 'id'`), managing database connections, or handling transaction rollbacks.
+
+**Commonality & Reusability:** Services provided by the infrastructure layers (like logging, configuration, security, or data access) are often required by multiple components across the application. By placing them in a lower layer, they can be designed once and reused consistently by any component in the layers above.
+
+**Example:** A Core Utilities Layer might offer an abstract logging service. Higher layers (like the Business Layer) simply call `logger.logEvent("User failed login")`, without needing to know if the log is being written to a file, a cloud service, or a separate database.
+
+### 2. Encapsulation
+
+Encapsulation is the core mechanism that achieves separation of concerns and improves system modifiability. Each layer hides its internal structure, implementation details, and components from all other layers, only exposing a well-defined public interface.
+
+**Information Hiding:** The layer above only interacts with the public interface (like method signatures) of the layer immediately below it. The specific internal logic and data structures of the lower layer are completely hidden.
+
+**Decoupling and Modifiability:** This strict hiding means changes made inside a layer will not affect the layers above it, as long as the public interface remains the same.
+
+**Example:** If the Persistence Layer (Layer 2) decides to switch from using a NoSQL database (like MongoDB) to a relational database (like PostgreSQL), the Business Logic Layer (Layer 3) is entirely unaffected because it only interacts with the same abstract methods (e.g., `findById(id)`) exposed by Layer 2. The internal implementation of those methods is irrelevant to Layer 3.
+
+### 3. Use an Intermediary
+
+In the layered pattern, every layer between the client-facing layer and the data layer acts as an intermediary, processing the request and response in sequence. This is a critical feature that allows for centralized management of cross-cutting concerns.
+
+**Request Flow Interception:** When a request originates from the highest layer (e.g., the Presentation Layer), it must pass through each intermediate layer sequentially before reaching the lowest layer (e.g., the Database). Each intermediate layer can intercept the request and perform its specific function.
+
+**Handling Cross-Cutting Concerns:** Intermediate layers are the ideal place to apply application-wide services, such as:
+
+* **Security:** An intermediate Service Layer might check for user permissions (authorization) before passing the request to the Business Logic.
+* **Transaction Management:** A layer wrapping the data access can manage the start and commit/rollback of a database transaction.
+* **Caching/Logging:** An intermediate layer can log the request details or check a cache before proceeding to the next layer, improving performance and auditability.
+
+**Strict Dependencies:** Because layers are arranged in a strict hierarchy, the flow of control is predictable (always down for a request, up for a response). This control makes it much easier to debug and test the system, as the dependencies are strictly defined.
